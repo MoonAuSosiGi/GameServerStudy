@@ -18,7 +18,7 @@ namespace ServerCore
             ThreadPool.SetMaxThreads(5, 5);
             for (int i = 0; i < 5; i++)
             {
-                Task t = new Task(() => { while (true) { } });//, TaskCreationOptions.LongRunning);
+                Task t = new Task(() => { while (true) { } }, TaskCreationOptions.LongRunning);
                 t.Start();
             }
 
