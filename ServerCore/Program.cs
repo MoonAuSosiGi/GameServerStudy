@@ -7,17 +7,26 @@ namespace ServerCore
     internal class Program
     {
         static int number = 0;
+        static object _obj = new object();
         
         static void Thread_1()
         {
             for (int i = 0; i < 100000; i++)
-                Interlocked.Increment(ref number);
+            {
+                Monitor.Enter(_obj);
+                number++;
+                Monitor.Exit(_obj);
+            }
         }
 
         static void Thread_2()
         {
             for (int i = 0; i < 100000; i++)
-                Interlocked.Decrement(ref number);
+            {
+                Monitor.Enter(_obj);
+                number--;
+                Monitor.Exit(_obj);
+            }
         }
 
         public static void Main(string[] args)
