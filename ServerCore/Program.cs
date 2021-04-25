@@ -11,13 +11,13 @@ namespace ServerCore
         static void Thread_1()
         {
             for (int i = 0; i < 100000; i++)
-                number++;
+                Interlocked.Increment(ref number);
         }
 
         static void Thread_2()
         {
             for (int i = 0; i < 100000; i++)
-                number--;
+                Interlocked.Decrement(ref number);
         }
 
         public static void Main(string[] args)
