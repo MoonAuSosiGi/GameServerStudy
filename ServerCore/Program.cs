@@ -6,7 +6,7 @@ namespace ServerCore
 {
     internal class Program
     {
-        static bool _stop = false;
+        volatile static bool _stop = false;
 
         static void ThreadMain()
         {
