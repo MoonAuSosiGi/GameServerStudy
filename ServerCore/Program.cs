@@ -14,12 +14,20 @@ namespace ServerCore
         static void Thread_1()
         {
             y = 1; // Store y
+
+            // ---------------------
+            Thread.MemoryBarrier();
+
             r1 = x; // Load x
         }
 
         static void Thread_2()
         {
             x = 1; // Store x
+
+            // ---------------------
+            Thread.MemoryBarrier();
+
             r2 = y; // Load y
         }
 
