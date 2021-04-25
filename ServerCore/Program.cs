@@ -10,7 +10,8 @@ namespace ServerCore
 
         public void Acquire()
         {
-            while(Interlocked.Exchange(ref _locked, 1) == 1)
+            // CAS Compare-And-Swap
+            while (Interlocked.CompareExchange(ref _locked, 1, 0) == 1)
             {
 
             }
