@@ -5,15 +5,26 @@ namespace ServerCore
 {
     internal class Program
     {
-        static void MainThread()
+        static void MainThread(object state)
         {
-            Console.WriteLine("Hello Thread!");
+            for (int i = 0; i < 5; i++)
+                Console.WriteLine("Hello Thread!");
         }
 
         public static void Main(string[] args)
         {
-            Thread t = new Thread(MainThread);
-            t.Start();
+            ThreadPool.SetMinThreads(1, 1);
+            ThreadPool.SetMaxThreads(5, 5);
+
+            for (int i = 0; i < 5; i++)
+                ThreadPool.QueueUserWorkItem((obj) => { while (true) { } });
+
+            // 아래는 생성되지 않음.
+            ThreadPool.QueueUserWorkItem(MainThread);      
+            while(true)
+            {
+
+            }
         }
 
     }
