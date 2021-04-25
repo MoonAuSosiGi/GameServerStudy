@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServerCore
 {
@@ -15,11 +16,13 @@ namespace ServerCore
         {
             ThreadPool.SetMinThreads(1, 1);
             ThreadPool.SetMaxThreads(5, 5);
+            for (int i = 0; i < 5; i++)
+            {
+                Task t = new Task(() => { while (true) { } });//, TaskCreationOptions.LongRunning);
+                t.Start();
+            }
 
-            for (int i = 0; i < 4; i++)
-                ThreadPool.QueueUserWorkItem((obj) => { while (true) { } });
-
-            // 위에서 최대 개수를 넘지 않게 했기 때문에, 아래는 생성됨
+            // Task는 기본적으로 스레드 풀에서 관리함
             ThreadPool.QueueUserWorkItem(MainThread);      
             while(true)
             {
