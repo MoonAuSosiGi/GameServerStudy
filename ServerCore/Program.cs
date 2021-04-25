@@ -13,14 +13,9 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                try
+                lock(_obj)
                 {
-                    Monitor.Enter(_obj);
                     number++;
-                }
-                finally
-                {
-                    Monitor.Exit(_obj);
                 }
             }
         }
@@ -29,14 +24,9 @@ namespace ServerCore
         {
             for (int i = 0; i < 100000; i++)
             {
-                try
+                lock(_obj)
                 {
-                    Monitor.Enter(_obj);
                     number--;
-                }
-                finally
-                {
-                    Monitor.Exit(_obj);
                 }
             }
         }
