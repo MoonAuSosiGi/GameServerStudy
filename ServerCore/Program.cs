@@ -11,9 +11,14 @@ namespace ServerCore
         public void Acquire()
         {
             // CAS Compare-And-Swap
-            while (Interlocked.CompareExchange(ref _locked, 1, 0) == 1)
+            while (true)
             {
+                int expected = 0;
+                int desired = 1;
+                if (Interlocked.CompareExchange(ref _locked, desired, expected) == expected)
+                    break;
 
+                Thread.Yield();
             }
         }
 
