@@ -4,34 +4,26 @@ using System.Threading.Tasks;
 
 namespace ServerCore
 {
-    class SpinLock
+    class Lock
     {
-        volatile int _locked = 0;
+        // 커널에 있는 bool 변수라고 보면 됨
+        AutoResetEvent _available = new AutoResetEvent(true);
 
         public void Acquire()
         {
-            // CAS Compare-And-Swap
-            while (true)
-            {
-                int expected = 0;
-                int desired = 1;
-                if (Interlocked.CompareExchange(ref _locked, desired, expected) == expected)
-                    break;
-
-                Thread.Yield();
-            }
+            _available.WaitOne(); // 입장 시도
         }
 
         public void Release()
         {
-            _locked = 0;
+            _available.Set(); // 이벤트 상태 변경
         }
     }
     
     internal class Program
     {
         static int _num = 0;
-        static SpinLock _lock = new SpinLock();
+        static Lock _lock = new Lock();
 
         static void Thread_1()
         {
