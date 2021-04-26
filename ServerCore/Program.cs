@@ -7,11 +7,13 @@ namespace ServerCore
     class Lock
     {
         // 커널에 있는 bool 변수라고 보면 됨
-        AutoResetEvent _available = new AutoResetEvent(true);
+        ManualResetEvent _available = new ManualResetEvent(true);
 
         public void Acquire()
         {
             _available.WaitOne(); // 입장 시도
+            // 자동으로 닫지 않으므로 수동으로 처리
+            _available.Reset();
         }
 
         public void Release()
