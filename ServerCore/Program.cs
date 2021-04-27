@@ -6,38 +6,32 @@ namespace ServerCore
 {
     internal class Program
     {
-        static volatile int count = 0;
-        static Lock _lock = new Lock();
+        static ThreadLocal<string> ThreadName = new ThreadLocal<string>(() => { return $"My Name is {Thread.CurrentThread.ManagedThreadId}"; });
+        static string ThreadNameNoTLS = "";
 
+        static void WhoAmI()
+        {
+            bool repeat = ThreadName.IsValueCreated;
+            if (repeat)
+                Console.WriteLine(ThreadName.Value + " (repeat)");
+            else
+            {
+                // 최초 생성시 value가 null이지만 사용시에 9번째 줄에서 넘긴 Func 무명함수를 실행해 받아오게 된다.
+                Console.WriteLine(ThreadName.Value);
+            }
+            //ThreadName.Value = $"My Name is {Thread.CurrentThread.ManagedThreadId}";
+            ThreadNameNoTLS = ThreadName.Value;           
+            Thread.Sleep(1000);
+
+            Console.WriteLine(ThreadName.Value);
+            Console.WriteLine($"NoTLS {ThreadNameNoTLS}");
+        }
 
         public static void Main(string[] args)
         {
-            Task t1 = new Task(delegate ()
-            {
-                for(int i = 0; i < 100000; i++)
-                {
-                    _lock.WriteLock();                    
-                    count++;                    
-                    _lock.WriteUnlock();
-                }
-            });
-
-            Task t2 = new Task(delegate ()
-            {
-                for (int i = 0; i < 100000; i++)
-                {
-                    _lock.WriteLock();
-                    count--;
-                    _lock.WriteUnlock();
-                }
-            });
-
-            t1.Start();
-            t2.Start();
-
-            Task.WaitAll(t1, t2);
-
-            Console.WriteLine(count);
+            ThreadPool.SetMinThreads(1, 1);
+            ThreadPool.SetMaxThreads(3, 3);
+            Parallel.Invoke(WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI);
         }
     }
 }
