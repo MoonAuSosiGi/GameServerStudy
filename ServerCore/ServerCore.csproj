@@ -45,6 +45,7 @@
     <Compile Include="Listener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecvBuffer.cs" />
+    <Compile Include="SendBuffer.cs" />
     <Compile Include="Session.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

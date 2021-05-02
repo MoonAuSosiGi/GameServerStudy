@@ -13,12 +13,17 @@ namespace DummyClient
         {
             Console.WriteLine($"OnConnected : {endPoint}");
 
+            ArraySegment<byte>? openSegment = SendBufferHelper.Open(4096);
+            int length = 0;
             // 보낸다
             for (int i = 0; i < 5; i++)
             {
-                byte[] sendBuff = Encoding.UTF8.GetBytes($"Hello World! {i} ");
-                Send(sendBuff);
+                byte[] buffer = Encoding.UTF8.GetBytes($"Hello World! {i} ");
+                length += buffer.Length;
+                Array.Copy(buffer, 0, openSegment.Value.Array, openSegment.Value.Offset + length, buffer.Length);
             }
+            ArraySegment<byte> sendBuff = SendBufferHelper.Close(length);
+            Send(sendBuff);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
