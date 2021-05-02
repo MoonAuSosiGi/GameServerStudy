@@ -7,23 +7,30 @@ using ServerCore;
 
 namespace DummyClient
 {
+    class Packet
+    {
+        public ushort size;
+        public ushort packetId;
+    }
+
     class GameSession : Session
     {
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"OnConnected : {endPoint}");
 
-            ArraySegment<byte>? openSegment = SendBufferHelper.Open(4096);
-            int length = 0;
+            Packet packet = new Packet() { size = 4, packetId = 7 };
             // 보낸다
             for (int i = 0; i < 5; i++)
             {
-                byte[] buffer = Encoding.UTF8.GetBytes($"Hello World! {i} ");
-                length += buffer.Length;
-                Array.Copy(buffer, 0, openSegment.Value.Array, openSegment.Value.Offset + length, buffer.Length);
+                ArraySegment<byte>? openSegment = SendBufferHelper.Open(4096);
+                byte[] buffer = BitConverter.GetBytes(packet.size);
+                byte[] buffer2 = BitConverter.GetBytes(packet.packetId);
+                Array.Copy(buffer, 0, openSegment.Value.Array, openSegment.Value.Offset, buffer.Length);
+                Array.Copy(buffer2, 0, openSegment.Value.Array, openSegment.Value.Offset + buffer.Length, buffer2.Length);
+                ArraySegment<byte> sendBuff = SendBufferHelper.Close(packet.size);
+                Send(sendBuff);
             }
-            ArraySegment<byte> sendBuff = SendBufferHelper.Close(length);
-            Send(sendBuff);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
