@@ -11,12 +11,12 @@ namespace ServerCore
     class Listener
     {
         Socket _listenSocket;
-        Action<Socket> _onAcceptHandler;
+        Func<Session> _sessionFactory;
 
-        public void Init(IPEndPoint endPoint, Action<Socket> onAcceptHandler)
+        public void Init(IPEndPoint endPoint, Func<Session> sessionFactory)
         {
             _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            _onAcceptHandler += onAcceptHandler;
+            _sessionFactory += sessionFactory;
 
             _listenSocket.Bind(endPoint);
 
@@ -49,7 +49,10 @@ namespace ServerCore
             // 에러없이 처리가 되었다.
             if(args.SocketError == SocketError.Success)
             {
-                _onAcceptHandler.Invoke(args.AcceptSocket);
+                Session session = _sessionFactory.Invoke();
+                session.Start(args.AcceptSocket);
+                // 클라이언트가 바로 끊을 경우 문제가 생김
+                session.OnConnected(args.AcceptSocket.RemoteEndPoint);
             }
             else
             {
