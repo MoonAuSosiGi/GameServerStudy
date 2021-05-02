@@ -9,6 +9,31 @@ namespace ServerCore
 {
     internal class Program
     {
+        static Listener _listener = new Listener();
+
+        static void OnAcceptHandler(Socket clientSocket)
+        {
+            try
+            {
+                // 받고
+                byte[] recvBuff = new byte[1024];
+                int recvBytes = clientSocket.Receive(recvBuff);
+                string recvData = Encoding.UTF8.GetString(recvBuff, 0, recvBytes);
+                Console.WriteLine($"[From Client] {recvData}");
+
+                // 전송 
+                byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server!");
+                clientSocket.Send(sendBuff);
+
+                // 쫒아내기
+                clientSocket.Shutdown(SocketShutdown.Both);
+                clientSocket.Close();
+            }catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
         public static void Main(string[] args)
         {
             // DNS 사용 (Domain Name System) 
@@ -18,42 +43,12 @@ namespace ServerCore
             IPAddress ipAddr = ipHost.AddressList[0];
             // 최종 주소와 포트번호 
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
-            
-            Socket listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            try
+            _listener.Init(endPoint, OnAcceptHandler);
+            Console.WriteLine("Listening ..");
+
+            while (true)
             {
-                listenSocket.Bind(endPoint);
-
-                // backlog : 최대 대기수 10으로 지정 
-                listenSocket.Listen(10);
-
-                while (true)
-                {
-                    Console.WriteLine("Listening ..");
-
-                    // 입장
-                    // 들어오는 클라이언트가 없다면 블로킹됨
-                    Socket clientSocket = listenSocket.Accept();
-
-                    // 받고
-                    byte[] recvBuff = new byte[1024];
-                    int recvBytes = clientSocket.Receive(recvBuff);
-                    string recvData = Encoding.UTF8.GetString(recvBuff, 0, recvBytes);
-                    Console.WriteLine($"[From Client] {recvData}");
-
-                    // 전송 
-                    byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server!");
-                    clientSocket.Send(sendBuff);
-
-                    // 쫒아내기
-                    clientSocket.Shutdown(SocketShutdown.Both);
-                    clientSocket.Close();
-                }
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.ToString());
             }
         }
     }
