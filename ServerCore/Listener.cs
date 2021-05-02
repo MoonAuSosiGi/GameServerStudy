@@ -23,11 +23,12 @@ namespace ServerCore
             // backlog : 최대 대기수 10으로 지정 
             _listenSocket.Listen(10);
 
-            // non blocking으로 받기 위해 관련 정보 등록
+            // non blocking으로 받기 위해 관련 정보 등록            
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
             args.Completed += new EventHandler<SocketAsyncEventArgs>(OnAcceptCompleted);
             // non blocking 처리 시작!
             RegisterAccepet(args);
+            
         }
 
         void RegisterAccepet(SocketAsyncEventArgs args)
@@ -48,7 +49,6 @@ namespace ServerCore
             // 에러없이 처리가 되었다.
             if(args.SocketError == SocketError.Success)
             {
-                // @todo 
                 _onAcceptHandler.Invoke(args.AcceptSocket);
             }
             else
