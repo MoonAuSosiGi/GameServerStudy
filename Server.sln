@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{E7243DCA-D888-43B2-ACFA-BAD41CBE2F1E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerCore", "ServerCore\ServerCore.csproj", "{39DC1684-EFA1-4C4B-A4FB-B7B212151E91}"
@@ -24,5 +27,8 @@ Global
 		{3A4ADA1A-1A97-4567-A91D-1D023BFECF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A4ADA1A-1A97-4567-A91D-1D023BFECF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A4ADA1A-1A97-4567-A91D-1D023BFECF55}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
