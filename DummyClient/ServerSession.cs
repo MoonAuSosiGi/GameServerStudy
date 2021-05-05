@@ -18,7 +18,7 @@ namespace DummyClient
         public abstract void Read(ArraySegment<byte> s);
     }
 
-    class PlayerInfoReq : Packet
+    class PlayerInfoReq
     {
         public long playerId;
         public string name;
@@ -55,11 +55,7 @@ namespace DummyClient
 
         public List<SkillInfo> skills = new List<SkillInfo>();
 
-        public PlayerInfoReq()
-        {
-            this.packetId = (ushort) PacketID.PlayerInfoReq;
-        }
-        public override ArraySegment<byte> Write()
+        public ArraySegment<byte> Write()
         {
             ArraySegment<byte> segment = SendBufferHelper.Open(4096);
             ushort count = 0;
@@ -68,7 +64,7 @@ namespace DummyClient
             Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
 
             count += sizeof(ushort);
-            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length- count), packetId);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length- count), (ushort)PacketID.PlayerInfoReq);
             count += sizeof(ushort);
             success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), playerId);
             count += sizeof(long);
@@ -101,7 +97,7 @@ namespace DummyClient
             return SendBufferHelper.Close(count);
         }
 
-        public override void Read(ArraySegment<byte> segment)
+        public void Read(ArraySegment<byte> segment)
         {
             ushort count = 0;
             ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
