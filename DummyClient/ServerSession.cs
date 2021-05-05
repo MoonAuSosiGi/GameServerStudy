@@ -21,6 +21,7 @@ namespace DummyClient
     class PlayerInfoReq : Packet
     {
         public long playerId;
+        public string name;
 
         public PlayerInfoReq()
         {
@@ -28,18 +29,29 @@ namespace DummyClient
         }
         public override ArraySegment<byte> Write()
         {
-            ArraySegment<byte>? s = SendBufferHelper.Open(4096);
+            ArraySegment<byte> segment = SendBufferHelper.Open(4096);
             ushort count = 0;
             bool success = true;
 
-            count += 2;
-            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), packetId);
-            count += 2;
-            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), playerId);
-            count += 8;
+            Span<byte> s = new Span<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length- count), packetId);
+            count += sizeof(ushort);
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), playerId);
+            count += sizeof(long);
+
+            // string len [2]
+            // length 와 byte배열의 크기가 다르다
+            // Encoding을 사용해야함 Unicode가 utf-16
+            // 한방이 넣기 때문에 namelength 위치 조절함
+            ushort nameLen = (ushort)Encoding.Unicode.GetBytes(name, 0, name.Length, segment.Array, segment.Offset + count + sizeof(ushort));
+            success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), nameLen);
+            count += sizeof(ushort);
+            count += nameLen;
 
             // size는 맨 마지막에
-            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset, s.Value.Count), count);
+            success &= BitConverter.TryWriteBytes(s, count);
 
             if (success == false)
                 return null;
@@ -47,15 +59,18 @@ namespace DummyClient
             return SendBufferHelper.Close(count);
         }
 
-        public override void Read(ArraySegment<byte> s)
+        public override void Read(ArraySegment<byte> segment)
         {
             ushort count = 0;
-            //ushort size = BitConverter.ToUInt16(s.Array, s.Offset + count);
-            count += 2;
-            //ushort packetId = BitConverter.ToUInt16(s.Array, s.Offset + count);
-            count += 2;
-            playerId = BitConverter.ToInt64(new ReadOnlySpan<byte>(s.Array, s.Offset + count, s.Count - count));
-            count += 8;
+            ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(segment.Array, segment.Offset, segment.Count);
+
+            count += sizeof(ushort);
+            count += sizeof(ushort);
+            playerId = BitConverter.ToInt64(s.Slice(count,s.Length - count));
+            count += sizeof(long);
+            ushort nameLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
+            count += sizeof(ushort);
+            name = Encoding.Unicode.GetString(s.Slice(count, nameLen));
         }
     }
     
@@ -71,7 +86,7 @@ namespace DummyClient
         {
             Console.WriteLine($"OnConnected : {endPoint}");
 
-            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001 };
+            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001, name = "테스트abc"};
             // 보낸다
             //for (int i = 0; i < 5; i++)
             {

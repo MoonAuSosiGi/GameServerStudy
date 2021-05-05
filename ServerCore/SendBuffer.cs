@@ -13,7 +13,7 @@ namespace ServerCore
 
         public static int ChunkSize { get; set; } = 4096 * 100;
 
-        public static ArraySegment<byte>? Open(int reserveSize)
+        public static ArraySegment<byte> Open(int reserveSize)
         {
             if (CurrentBuffer.Value == null)
                 CurrentBuffer.Value = new SendBuffer(ChunkSize);
@@ -52,7 +52,7 @@ namespace ServerCore
         /// </summary>
         public int FreeSize { get { return _buffer.Length - _usedSize; } }
 
-        public ArraySegment<byte>? Open(int reserveSize)
+        public ArraySegment<byte> Open(int reserveSize)
         {
             if (reserveSize > FreeSize)
                 return null;
