@@ -9,23 +9,56 @@ using System.Threading.Tasks;
 namespace DummyClient
 {
     // 서버 대리자
-    class Packet
+    public abstract class Packet
     {
         public ushort size;
         public ushort packetId;
+
+        public abstract ArraySegment<byte> Write();
+        public abstract void Read(ArraySegment<byte> s);
     }
 
     class PlayerInfoReq : Packet
     {
         public long playerId;
-    }
 
-    class PlayerInfoOk : Packet
-    {
-        public int hp;
-        public int attack;
-    }
+        public PlayerInfoReq()
+        {
+            this.packetId = (ushort) PacketID.PlayerInfoReq;
+        }
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte>? s = SendBufferHelper.Open(4096);
+            ushort count = 0;
+            bool success = true;
 
+            count += 2;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), packetId);
+            count += 2;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), playerId);
+            count += 8;
+
+            // size는 맨 마지막에
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset, s.Value.Count), count);
+
+            if (success == false)
+                return null;
+
+            return SendBufferHelper.Close(count);
+        }
+
+        public override void Read(ArraySegment<byte> s)
+        {
+            ushort count = 0;
+            //ushort size = BitConverter.ToUInt16(s.Array, s.Offset + count);
+            count += 2;
+            //ushort packetId = BitConverter.ToUInt16(s.Array, s.Offset + count);
+            count += 2;
+            playerId = BitConverter.ToInt64(new ReadOnlySpan<byte>(s.Array, s.Offset + count, s.Count - count));
+            count += 8;
+        }
+    }
+    
     public enum PacketID
     {
         PlayerInfoReq = 1,
@@ -38,26 +71,13 @@ namespace DummyClient
         {
             Console.WriteLine($"OnConnected : {endPoint}");
 
-            PlayerInfoReq packet = new PlayerInfoReq() { packetId = (ushort)PacketID.PlayerInfoReq, playerId = 1001 };
+            PlayerInfoReq packet = new PlayerInfoReq() { playerId = 1001 };
             // 보낸다
             //for (int i = 0; i < 5; i++)
             {
-                ArraySegment<byte>? s = SendBufferHelper.Open(4096);
-                ushort count = 0;
-                bool success = true;
-                
-                count += 2;
-                success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), packet.packetId);
-                count += 2;
-                success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), packet.playerId);
-                count += 8;
-
-                // size는 맨 마지막에
-                success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset, s.Value.Count), count);
-
-                ArraySegment<byte> sendBuff = SendBufferHelper.Close(count);
-                if(success)
-                    Send(sendBuff);
+                ArraySegment<byte> s = packet.Write();
+                if(s != null)
+                    Send(s);
             }
         }
 

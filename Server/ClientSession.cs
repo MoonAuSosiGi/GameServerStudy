@@ -9,22 +9,56 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    class Packet
+    public abstract class Packet
     {
         public ushort size;
         public ushort packetId;
+
+        public abstract ArraySegment<byte> Write();
+        public abstract void Read(ArraySegment<byte> s);
     }
 
     class PlayerInfoReq : Packet
     {
         public long playerId;
+
+        public PlayerInfoReq()
+        {
+            this.packetId = (ushort)PacketID.PlayerInfoReq;
+        }
+        public override ArraySegment<byte> Write()
+        {
+            ArraySegment<byte>? s = SendBufferHelper.Open(4096);
+            ushort count = 0;
+            bool success = true;
+
+            count += 2;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), packetId);
+            count += 2;
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset + count, s.Value.Count - count), playerId);
+            count += 8;
+
+            // size는 맨 마지막에
+            success &= BitConverter.TryWriteBytes(new Span<byte>(s.Value.Array, s.Value.Offset, s.Value.Count), count);
+
+            if (success == false)
+                return null;
+
+            return SendBufferHelper.Close(count);
+        }
+
+        public override void Read(ArraySegment<byte> s)
+        {
+            ushort count = 0;
+            //ushort size = BitConverter.ToUInt16(s.Array, s.Offset + count);
+            count += 2;
+            //ushort packetId = BitConverter.ToUInt16(s.Array, s.Offset + count);
+            count += 2;
+            playerId = BitConverter.ToInt64(new ReadOnlySpan<byte>(s.Array, s.Offset + count, s.Count - count));
+            count += 8;
+        }
     }
 
-    class PlayerInfoOk : Packet
-    {
-        public int hp;
-        public int attack;
-    }
 
     public enum PacketID
     {
@@ -37,20 +71,6 @@ namespace Server
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"OnConnected : {endPoint}");
-
-            Packet packet = new Packet() { size = 100, packetId = 10 };
-
-            //ArraySegment<byte>? openSegment = SendBufferHelper.Open(4096);
-            //byte[] buffer = BitConverter.GetBytes(packet.size);
-            //byte[] buffer2 = BitConverter.GetBytes(packet.packetId);
-            //Array.Copy(buffer, 0, openSegment.Value.Array, openSegment.Value.Offset, buffer.Length);
-            //Array.Copy(buffer2, 0, openSegment.Value.Array, openSegment.Value.Offset + buffer.Length, buffer2.Length);
-
-            //// 실제로 보내야하는 버퍼 
-            //ArraySegment<byte> sendBuff = SendBufferHelper.Close(buffer.Length + buffer2.Length);
-
-            //// 전송             
-            //Send(sendBuff);
             Thread.Sleep(5000);
             Disconnect();
         }
@@ -70,11 +90,12 @@ namespace Server
             switch((PacketID)packetId)
             {
                 case PacketID.PlayerInfoReq:
-                    {
-                        long playerId = BitConverter.ToInt64(buffer.Array, buffer.Offset + count);
-                        count += 8;
-                        Console.WriteLine($"PlayerInfoReq : {playerId}");
-                    }
+                {
+                    PlayerInfoReq p = new PlayerInfoReq();
+                    p.Read(buffer);
+                    
+                    Console.WriteLine($"PlayerInfoReq : {p.playerId}");
+                }
                     break;
             }
 
