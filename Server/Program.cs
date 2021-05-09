@@ -10,6 +10,8 @@ namespace Server
 
         public static void Main(string[] args)
         {
+            PacketManager.Instance.Register();
+
             // DNS 사용 (Domain Name System) 
             // 텍스트 주소를 ip 주소로 변환해주는 서버
             string host = Dns.GetHostName(); // 로컬 컴퓨터의 호스트 이름

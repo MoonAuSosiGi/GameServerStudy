@@ -11,8 +11,15 @@ public enum PacketID
 	
 }
 
+interface IPacket
+{
+	ushort Protocol { get; }
+    void Read(ArraySegment<byte> segement);
+    ArraySegment<byte> Write();
+}
 
-class PlayerInfoReq
+
+class PlayerInfoReq : IPacket
 {
     public byte testByte;
 	public long playerId;
@@ -23,28 +30,6 @@ class PlayerInfoReq
 	    public int id;
 		public short level;
 		public float duration;
-		
-		public struct Attribute
-		{
-		    public int att;
-		
-		    public void Read(ReadOnlySpan<byte> s, ref ushort count)
-		    {
-		         this.att = BitConverter.ToInt32(s.Slice(count, s.Length - count));
-				count += sizeof(int);
-		    }
-		
-		    public bool Write(Span<byte> s, ref ushort count)
-		    {
-		        bool success = true;
-		        success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.att);
-				count += sizeof(int);
-		        return success;
-		    }
-		}
-		
-		public List<Attribute> attributes = new List<Attribute>();
-		
 	
 	    public void Read(ReadOnlySpan<byte> s, ref ushort count)
 	    {
@@ -54,17 +39,6 @@ class PlayerInfoReq
 			count += sizeof(short);
 			 this.duration = BitConverter.ToSingle(s.Slice(count, s.Length - count));
 			count += sizeof(float);
-			this.attributes.Clear();
-			ushort attributeLen = BitConverter.ToUInt16(s.Slice(count, s.Length - count));
-			count += sizeof(ushort);
-			
-			for (int i = 0; i < attributeLen; i++)
-			{
-			    Attribute attribute = new Attribute();
-			    attribute.Read(s, ref count);
-			    attributes.Add(attribute);
-			}
-			
 	    }
 	
 	    public bool Write(Span<byte> s, ref ushort count)
@@ -76,17 +50,14 @@ class PlayerInfoReq
 			count += sizeof(short);
 			success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), this.duration);
 			count += sizeof(float);
-			success &= BitConverter.TryWriteBytes(s.Slice(count, s.Length - count), (ushort)this.attributes.Count);
-			count += sizeof(ushort);
-			foreach (Attribute attribute in this.attributes)
-			    success &= attribute.Write(s, ref count);
-			
 	        return success;
 	    }
 	}
 	
 	public List<Skill> skills = new List<Skill>();
 	
+
+    public ushort Protocol { get { return (ushort)PacketID.PlayerInfoReq; } }
     
     public void Read(ArraySegment<byte> segment)
     {
@@ -149,9 +120,11 @@ class PlayerInfoReq
     
 }
 
-class Test
+class Test : IPacket
 {
     public int testInt;
+
+    public ushort Protocol { get { return (ushort)PacketID.Test; } }
     
     public void Read(ArraySegment<byte> segment)
     {
