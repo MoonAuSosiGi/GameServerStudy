@@ -17,17 +17,20 @@ using ServerCore;
 class PacketManager
 {{
     #region Singletone
-    private static PacketManager _instance;
+    private static PacketManager _instance = new PacketManager();
     public static PacketManager Instance
     {{
         get
         {{
-            if (_instance == null)
-                _instance = new PacketManager();
             return _instance;
         }}
     }}
     #endregion
+
+    PacketManager()
+    {{
+        Register();
+    }}
 
     // 프로토콜 아이디 , 액션 
     private Dictionary<ushort, Action<PacketSession, ArraySegment<byte>>> _onRecv =
