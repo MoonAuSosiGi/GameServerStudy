@@ -1,29 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ServerCore;
 
 namespace Server
 {
-    class GameRoom
+    class GameRoom : IJobQueue
     {
         private List<ClientSession> _sessions = new List<ClientSession>();
-        private object _lock = new object();
+        private JobQueue _jobQueue = new JobQueue();
 
         public void Enter(ClientSession session)
         {
-            lock (_lock)
-            {
-                _sessions.Add(session);
-                session.Room = this;
-            }
+            _sessions.Add(session);
+            session.Room = this;
         }
 
         public void Leave(ClientSession session)
         {
-            lock (_lock)
-            {
                 _sessions.Remove(session);
-            }
         }
 
         public void Broadcast(ClientSession clientSession, string chatPacketChat)
@@ -34,14 +29,16 @@ namespace Server
                 chat = $"{chatPacketChat} I am {clientSession.SessionId}"
             };
             ArraySegment<byte> segment = packet.Write();
-
-            lock (_lock)
+            
+            foreach (var session in _sessions)
             {
-                foreach (var session in _sessions)
-                {
-                    session.Send(segment);
-                }
+                session.Send(segment);
             }
+        }
+
+        public void Push(Action job)
+        {
+            _jobQueue.Push(job);
         }
     }
 }
