@@ -9,6 +9,12 @@ using UnityEngine;
 public class NetworkManager : MonoBehaviour
 {
     private ServerSession _session = new ServerSession();
+
+    public void Send(ArraySegment<byte> sendBuff)
+    {
+        _session.Send(sendBuff);
+    }
+    
     void Start()
     {
         // DNS 사용 (Domain Name System) 
@@ -23,31 +29,15 @@ public class NetworkManager : MonoBehaviour
 
         connector.Connect(endPoint, () => { return _session; },
             1);
-
-        StartCoroutine("CoSendPacket");
     }
 
     private void Update()
     {
-        IPacket packet = PacketQueue.Instance.Pop();
+        List<IPacket> list = PacketQueue.Instance.PopAll();
 
-        if (packet != null)
+        foreach (var packet in list)
         {
             PacketManager.Instance.HandlePacket(_session, packet);
-        }
-    }
-
-    IEnumerator CoSendPacket()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(3.0f);
-
-            C_Chat chatPacket = new C_Chat();
-            chatPacket.chat = "Hello Unity";
-            ArraySegment<byte> segment = chatPacket.Write();
-            
-            _session.Send(segment);
         }
     }
 }

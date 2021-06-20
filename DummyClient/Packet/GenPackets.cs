@@ -25,7 +25,7 @@ public interface IPacket
 
 public class S_BroadcastEnterGame : IPacket
 {
-    public int palyerId;
+    public int playerId;
 	public float posX;
 	public float posY;
 	public float posZ;
@@ -37,7 +37,7 @@ public class S_BroadcastEnterGame : IPacket
         ushort count = 0;
         count += sizeof(ushort);
         count += sizeof(ushort);
-        this.palyerId = BitConverter.ToInt32(segment.Array, segment.Offset + count);
+        this.playerId = BitConverter.ToInt32(segment.Array, segment.Offset + count);
 		count += sizeof(int);
 		 this.posX = BitConverter.ToSingle(segment.Array, segment.Offset + count);
 		count += sizeof(float);
@@ -57,7 +57,7 @@ public class S_BroadcastEnterGame : IPacket
         Array.Copy(BitConverter.GetBytes((ushort)PacketID.S_BroadcastEnterGame), 0, segment.Array, segment.Offset + count, sizeof(ushort));        
         count += sizeof(ushort);
 
-        Array.Copy(BitConverter.GetBytes(this.palyerId), 0, segment.Array, segment.Offset + count, sizeof(int));
+        Array.Copy(BitConverter.GetBytes(this.playerId), 0, segment.Array, segment.Offset + count, sizeof(int));
 		count += sizeof(int);
 		Array.Copy(BitConverter.GetBytes(this.posX), 0, segment.Array, segment.Offset + count, sizeof(float));
 		count += sizeof(float);

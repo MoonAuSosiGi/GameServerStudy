@@ -2,7 +2,7 @@
 <PDL>
 
   <packet name="S_BroadcastEnterGame">
-    <int name="palyerId"/>
+    <int name="playerId"/>
     <float name="posX"/>
     <float name="posY"/>
     <float name="posZ"/>
