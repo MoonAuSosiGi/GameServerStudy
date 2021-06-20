@@ -14,7 +14,7 @@ namespace PacketGenerator
 using System.Collections.Generic;
 using ServerCore;
 
-class PacketManager
+public class PacketManager
 {{
     #region Singletone
     private static PacketManager _instance = new PacketManager();
@@ -121,7 +121,7 @@ public interface IPacket
         // {3} 멤버 변수 Write
         public static string packetFormat =
 @"
-class {0} : IPacket
+public class {0} : IPacket
 {{
     {1}
 
@@ -217,7 +217,7 @@ count += sizeof(ushort);
 for (int i = 0; i < {1}Len; i++)
 {{
     {0} {1} = new {0}();
-    {1}.Read(s, ref count);
+    {1}.Read(segment, ref count);
     {1}s.Add({1});
 }}
 ";
